@@ -13,7 +13,7 @@ with open('requirements.txt', 'r') as requirements:
 
 setup(
     name='financial-analysis',
-    version='1.1.0',
+    version='1.1.1',
     description='A pandas extension for performing financial analysis on trade data.',
     long_description=README,
     long_description_content_type='text/markdown',
