@@ -1,0 +1,3 @@
+limit-order-book>=1.1.1
+numpy>=1.16.2
+pandas>=0.25.0
