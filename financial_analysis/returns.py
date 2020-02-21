@@ -2,42 +2,9 @@
 Source: https://financeformulas.net/Total-Stock-Return.html
 
 """
+import numpy as np
 import pandas as pd
-
-
-def _set_freq(
-    price: pd.Series,
-    dividend: pd.Series = None,
-    freq: any = None,
-    groupby: bool = True,
-    method: any = 'mean'
-) -> pd.Series:
-    """
-    Set the frequency for the given price / dividend.
-
-    Args:
-        price: the price time-series to set the frequency for
-        dividend: any dividend paid to set the frequency for
-        freq: the frequency of periods for calculating returns
-        groupby: whether to use groupby or asfreq
-        method: the method to use for aggregating the time frequency group by
-
-    Returns:
-        a tuple of:
-        - the price after setting the frequency
-        - the dividend after setting the frequency
-    """
-    if freq is not None:  # adjust the frequency of the data
-        if groupby:  # use a groupby to set the frequency
-            price = price.groupby(pd.Grouper(freq=freq)).agg(method)
-        else:  # just use asfreq (i.e., take the last value in the period)
-            price = price.asfreq(freq)
-        if dividend is not None:  # adjust the frequency of the dividend
-            if groupby:  # use a groupby to set the frequency
-                dividend = dividend.groupby(pd.Grouper(freq=freq)).agg(method)
-            else:  # just use asfreq (i.e., take the last value in the period)
-                dividend = dividend.asfreq(freq)
-    return price, dividend
+from . import _util
 
 
 def cash_return(
@@ -45,7 +12,8 @@ def cash_return(
     dividend: pd.Series = None,
     freq: any = None,
     groupby: bool = True,
-    method: any = 'mean'
+    method: any = 'mean',
+    log_return: bool = False
 ) -> pd.Series:
     """
     Calculate the stock returns of a pandas time-series.
@@ -56,6 +24,7 @@ def cash_return(
         freq: the frequency of periods for calculating returns
         groupby: whether to use groupby or asfreq
         method: the method to use for aggregating the time frequency group by
+        log_return: whether to use log return
 
     Returns:
         the returns of the series over the given period
@@ -70,11 +39,18 @@ def cash_return(
         - D are any dividend paid
     """
     # set the frequency of the price and dividend data
-    price, dividend = _set_freq(price, dividend, freq, groupby, method)
+    price, dividend = _util.set_freq(price, dividend, freq, groupby, method)
+    # shift the price vector 1 index value after setting the frequency
+    price_last = price.shift(1)
+    if log_return:  # apply the logarithmic function to the variables
+        # use the subtractive method to allow NumPy to catch the divide by zero
+        # error that occurs if price_last is zero. conveniently provides the
+        # same functionality for when price is 0.
+        return (np.log(price) - np.log(price_last))[1:]
     if dividend is None:  # don't use dividend in the calculation
-        returns = price - price.shift(1)
+        returns = price - price_last
     else:  # use dividend in the calculation
-        returns = price - price.shift(1) + dividend
+        returns = price - price_last + dividend
     # the first value becomes NaN because of the shift operation, skip it
     return returns[1:]
 
@@ -115,7 +91,7 @@ def percent_return(
         - D are any dividend paid
     """
     # set the frequency of the price and dividend data
-    price, dividend = _set_freq(price, dividend, freq, groupby, method)
+    price, dividend = _util.set_freq(price, dividend, freq, groupby, method)
     if dividend is None:  # don't use dividend in the calculation
         returns = (price / price.shift(1)) - 1
     else:  # use dividend in the calculation
