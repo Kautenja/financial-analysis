@@ -17,6 +17,16 @@ class ShouldCalculateReturns(TestCase):
         self.assertAlmostEqual(0.04, returns.values[0])
 
 
+class ShouldCalculateLogReturns(TestCase):
+    def test(self):
+        index = pd.to_datetime([1, 2], unit='ns')
+        price = pd.Series([3.570, 3.575], index=index)
+        # cash returns
+        returns = cash_return(price, log_return=True)
+        # should be 0.0014, but log in python sucks apparently
+        self.assertAlmostEqual(0.00139, returns.values[0], places=4)
+
+
 class ShouldCalculateReturnsFromSelf(TestCase):
     def test(self):
         index = pd.to_datetime([1, 2], unit='ns')
