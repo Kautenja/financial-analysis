@@ -30,12 +30,12 @@ def set_freq(price: pd.Series,
         if groupby:  # use a groupby to set the frequency
             price = price.groupby(pd.Grouper(freq=freq)).agg(method)
         else:  # just use asfreq (i.e., take the last value in the period)
-            price = price.asfreq(freq)
+            price = price.asfreq(freq, method=method)
         if dividend is not None:  # adjust the frequency of the dividend
             if groupby:  # use a groupby to set the frequency
                 dividend = dividend.groupby(pd.Grouper(freq=freq)).agg(method)
             else:  # just use asfreq (i.e., take the last value in the period)
-                dividend = dividend.asfreq(freq)
+                dividend = dividend.asfreq(freq, method=method)
     if ffill: # forward fill missing values
         price = price.ffill()
         if dividend is not None:
