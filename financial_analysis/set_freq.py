@@ -2,12 +2,12 @@
 import pandas as pd
 
 
-def set_freq(
-    price: pd.Series,
+def set_freq(price: pd.Series,
     dividend: pd.Series = None,
     freq: any = None,
     groupby: bool = True,
-    method: any = 'mean'
+    method: any = 'mean',
+    ffill: bool = True
 ) -> pd.Series:
     """
     Set the frequency for the given price / dividend.
@@ -18,11 +18,13 @@ def set_freq(
         freq: the frequency of periods for calculating returns
         groupby: whether to use groupby or asfreq
         method: the method to use for aggregating the time frequency group by
+        ffill: whether to forward fill missing values (i.e., NaN values)
 
     Returns:
         a tuple of:
         - the price after setting the frequency
         - the dividend after setting the frequency
+
     """
     if freq is not None:  # adjust the frequency of the data
         if groupby:  # use a groupby to set the frequency
@@ -34,6 +36,10 @@ def set_freq(
                 dividend = dividend.groupby(pd.Grouper(freq=freq)).agg(method)
             else:  # just use asfreq (i.e., take the last value in the period)
                 dividend = dividend.asfreq(freq)
+    if ffill: # forward fill missing values
+        price = price.ffill()
+        if dividend is not None:
+            dividend = dividend.ffill()
     return price, dividend
 
 

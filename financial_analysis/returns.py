@@ -4,15 +4,15 @@ Source: https://financeformulas.net/Total-Stock-Return.html
 """
 import numpy as np
 import pandas as pd
-from . import _util
+from .set_freq import set_freq
 
 
-def cash_return(
-    price: pd.Series,
+def cash_return(price: pd.Series,
     dividend: pd.Series = None,
     freq: any = None,
     groupby: bool = True,
     method: any = 'mean',
+    ffill: bool = True,
     log_return: bool = False
 ) -> pd.Series:
     """
@@ -22,8 +22,12 @@ def cash_return(
         price: the price time-series to calculate the returns of
         dividend: any dividend paid (none by default, i.e., 0)
         freq: the frequency of periods for calculating returns
-        groupby: whether to use groupby or asfreq
+        groupby: whether to use groupby (True) or asfreq (False) on frequency
+                 adjustment
         method: the method to use for aggregating the time frequency group by
+                on frequency adjustment
+        ffill: whether to forward fill missing values (i.e., NaN values) on
+               frequency adjustment
         log_return: whether to use log return
 
     Returns:
@@ -31,15 +35,26 @@ def cash_return(
 
     Notes:
 
-        r = (P1 - P0) + D
+        r = (p_1 - p_0) + d
 
         where:
-        - P0 is the initial price
-        - P1 is the ending price for the period
-        - D are any dividend paid
+        - p_0 is the initial price
+        - p_1 is the ending price for the period
+        - d are any dividend paid
+
+        in the case where log_return is true,
+
+        r = ln(p_1) - ln(p_0)
+
     """
     # set the frequency of the price and dividend data
-    price, dividend = _util.set_freq(price, dividend, freq, groupby, method)
+    price, dividend = set_freq(price,
+        dividend=dividend,
+        freq=freq,
+        groupby=groupby,
+        method=method,
+        ffill=ffill
+    )
     # shift the price vector 1 index value after setting the frequency
     price_last = price.shift(1)
     if log_return:  # apply the logarithmic function to the variables
@@ -59,12 +74,12 @@ def cash_return(
 setattr(pd.Series, cash_return.__name__, cash_return)
 
 
-def percent_return(
-    price: pd.Series,
+def percent_return(price: pd.Series,
     dividend: pd.Series = None,
     freq: any = None,
     groupby: bool = True,
-    method: any = 'mean'
+    method: any = 'mean',
+    ffill: bool = True,
 ) -> pd.Series:
     """
     Calculate the stock returns of a pandas time-series.
@@ -73,8 +88,12 @@ def percent_return(
         price: the price time-series to calculate the returns of
         dividend: any dividend paid (none by default, i.e., 0)
         freq: the frequency of periods for calculating returns
-        groupby: whether to use groupby or asfreq
+        groupby: whether to use groupby (True) or asfreq (False) on frequency
+                 adjustment
         method: the method to use for aggregating the time frequency group by
+                on frequency adjustment
+        ffill: whether to forward fill missing values (i.e., NaN values) on
+               frequency adjustment
 
     Returns:
         the returns of the series over the given period
@@ -91,7 +110,13 @@ def percent_return(
         - D are any dividend paid
     """
     # set the frequency of the price and dividend data
-    price, dividend = _util.set_freq(price, dividend, freq, groupby, method)
+    price, dividend = set_freq(price,
+        dividend=dividend,
+        freq=freq,
+        groupby=groupby,
+        method=method,
+        ffill=ffill
+    )
     if dividend is None:  # don't use dividend in the calculation
         returns = (price / price.shift(1)) - 1
     else:  # use dividend in the calculation
