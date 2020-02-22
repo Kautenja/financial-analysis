@@ -80,33 +80,28 @@ class ShouldNotUpsampleTimeScaleUsingFfillFalse(TestCase):
 # MARK: Down-sampling (aggregating groups of data)
 #
 
-# class ShouldDownsampleUsingGroupbyAndMeanValue(TestCase):
+class ShouldDownsampleUsingGroupbyAndMeanValue(TestCase):
+    def test(self):
+        index = pd.to_datetime([1001, 1002], unit='ms')
+        price = pd.Series([100., 101.], index=index)
+        dividend = pd.Series([5., 6.], index=index)
+        price, dividend = set_freq(price, dividend, freq='1s', method='mean')
+        # create the expected index and price
+        expected_index = pd.to_datetime([1], unit='s')
+        # expected values will have NaN where there were none
+        expected_price = pd.Series([100.5], index=expected_index)
+        expected_dividend = pd.Series([5.5], index=expected_index)
+        # make assertions through the pandas testing module
+        pd.testing.assert_series_equal(price, expected_price)
+        pd.testing.assert_series_equal(dividend, expected_dividend)
+
+
+# class ShouldDownsampleUsingAsfreq(TestCase):
 #     def test(self):
-#         index = pd.to_datetime([1, 2], unit='ms')
+#         index = pd.to_datetime([1001, 1002], unit='ms')
 #         price = pd.Series([100., 101.], index=index)
 #         dividend = pd.Series([5., 6.], index=index)
-#         price, dividend = set_freq(price, dividend, freq='1s', method='mean')
-#         # create the expected index and price
-#         expected_index = pd.to_datetime([1], unit='s')
-#         # expected values will have NaN where there were none
-#         expected_price = pd.Series([100.5], index=expected_index).asfreq('s')
-#         expected_dividend = pd.Series([5.5], index=expected_index).asfreq('s')
-#         # make assertions through the pandas testing module
-#         pd.testing.assert_series_equal(price, expected_price)
-#         pd.testing.assert_series_equal(dividend, expected_dividend)
-
-
-# class ShouldDownsampleUsingGroupbyAndMeanValue(TestCase):
-#     def test(self):
-#         index = pd.to_datetime([999], unit='ms')
-#         price = pd.Series([100.], index=index)
-#         dividend = pd.Series([5.], index=index)
-#         # price, dividend = set_freq(price, dividend, freq='1s', groupby=False, method='bfill')
-#         price = price.resample('s')
-#         dividend = dividend.resample('s')
-#         print()
-#         print(price)
-#         print(dividend)
+#         price, dividend = set_freq(price, dividend, freq='1s', groupby=False, method='bfill')
 #         # create the expected index and price
 #         expected_index = pd.to_datetime([1], unit='s')
 #         # expected values will have NaN where there were none
@@ -115,22 +110,3 @@ class ShouldNotUpsampleTimeScaleUsingFfillFalse(TestCase):
 #         # make assertions through the pandas testing module
 #         pd.testing.assert_series_equal(price, expected_price)
 #         pd.testing.assert_series_equal(dividend, expected_dividend)
-
-
-# class ShouldDownsampleUsingGroupbyAndMeanValue(TestCase):
-#     def test(self):
-#         index = pd.to_datetime([1, 2], unit='ms')
-#         price = pd.Series([100., 101.], index=index)
-#         dividend = pd.Series([5., 6.], index=index)
-#         price, dividend = set_freq(price, dividend, freq='1s', groupby=False, method='pad', ffill=False)
-#         print(price)
-#         print(dividend)
-#         # create the expected index and price
-#         expected_index = pd.to_datetime([1], unit='s')
-#         # expected values will have NaN where there were none
-#         expected_price = pd.Series([101.], index=expected_index).asfreq('s')
-#         expected_dividend = pd.Series([6.], index=expected_index).asfreq('s')
-#         # make assertions through the pandas testing module
-#         pd.testing.assert_series_equal(price, expected_price)
-#         pd.testing.assert_series_equal(dividend, expected_dividend)
-
