@@ -9,7 +9,7 @@ with open('README.md') as README_file:
 
 setup(
     name='financial-analysis',
-    version='1.1.2',
+    version='1.1.3',
     description='A pandas extension for performing financial analysis on trade data.',
     long_description=README,
     long_description_content_type='text/markdown',
